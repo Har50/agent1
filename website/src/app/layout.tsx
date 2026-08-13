@@ -17,16 +17,16 @@ const sans = Figtree({
 const mono = JetBrains_Mono({
   subsets: ['latin'],
   variable: '--font-mono',
-  weight: ['400', '500'],
+  weight: ['400', '500', '700'],
 });
 
 export const metadata: Metadata = {
-  title: 'AgentExec — Programmable Money Rails for AI Agents',
+  title: 'AgentExec — Execution & Money Rails for Autonomous AI',
   description:
-    'Protect AI agent treasuries with Tenderly dry-runs, EIP-7579 session keys, and x402 HTTP micropayment paywalls on Base L2.',
+    'Developer infrastructure for AI commerce: EIP-7579 session keys, Tenderly dry-runs, Go rate limiting, and x402 HTTP micropayments on Base L2.',
   openGraph: {
     title: 'AgentExec',
-    description: 'The execution & security rail for the agentic economy.',
+    description: 'The execution, security, and micropayment layer for AI agents.',
   },
 };
 
@@ -34,8 +34,11 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${display.variable} ${sans.variable} ${mono.variable}`}>
-      <body className="min-h-screen antialiased">{children}</body>
+    <html
+      lang="en"
+      className={`${display.variable} ${sans.variable} ${mono.variable}`}
+    >
+      <body className="min-h-screen bg-slate-950 antialiased">{children}</body>
     </html>
   );
 }

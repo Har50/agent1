@@ -11,6 +11,7 @@ Standalone Base L2 API for AI agents: x402 HTTP paywalls, EIP-7579 session keys,
 | Doc | Purpose |
 |-----|---------|
 | [Investor pitch](./docs/INVESTOR_PITCH.md) | Executive summary, stack diagram, GTM |
+| [Ecosystem positioning](./docs/ECOSYSTEM_POSITIONING.md) | Vertical use-case matrix |
 | [Architecture](./docs/ARCHITECTURE.md) | System design |
 | [Website launch](./docs/WEBSITE_LAUNCH.md) | Portal strategy + hero copy |
 | [MCP](./docs/MCP.md) | Cursor / Claude Desktop |

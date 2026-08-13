@@ -3,10 +3,11 @@
 @tailwind utilities;
 
 :root {
-  --bg: #eef5f7;
-  --ink: #071820;
-  --signal: #0e9aa7;
-  --ember: #e8a54b;
+  --bg: #020617;
+  --ink: #f1f5f9;
+  --muted: #94a3b8;
+  --signal: #22d3ee;
+  --panel: #0f172a;
 }
 
 html {
@@ -21,20 +22,21 @@ body {
 }
 
 ::selection {
-  background: rgba(14, 154, 167, 0.25);
+  background: rgba(34, 211, 238, 0.35);
+  color: #020617;
 }
 
-.hero-atmosphere {
-  background:
-    radial-gradient(ellipse 90% 70% at 70% 20%, rgba(20, 196, 212, 0.28), transparent 55%),
-    radial-gradient(ellipse 60% 50% at 10% 80%, rgba(232, 165, 75, 0.16), transparent 50%),
-    linear-gradient(165deg, #dce9ef 0%, #eef5f7 42%, #c5d8e0 100%);
-}
-
-.rail-grid {
+.platform-grid {
   background-image:
-    linear-gradient(rgba(7, 24, 32, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(7, 24, 32, 0.04) 1px, transparent 1px);
-  background-size: 48px 48px;
-  mask-image: radial-gradient(ellipse 80% 70% at 60% 40%, black 20%, transparent 75%);
+    linear-gradient(to right, rgba(30, 41, 59, 0.35) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(30, 41, 59, 0.35) 1px, transparent 1px);
+  background-size: 4rem 4rem;
+  mask-image: radial-gradient(ellipse 70% 55% at 50% 0%, #000 55%, transparent 100%);
+}
+
+.hero-wash {
+  background:
+    radial-gradient(ellipse 80% 55% at 50% -10%, rgba(34, 211, 238, 0.18), transparent 55%),
+    radial-gradient(ellipse 50% 40% at 90% 30%, rgba(16, 185, 129, 0.1), transparent 50%),
+    #020617;
 }

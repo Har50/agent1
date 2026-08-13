@@ -2,7 +2,10 @@
 
 ## Positioning
 
-**AgentExec** = sovereign execution layer for autonomous AI commerce on Base.
+**AgentExec** = foundational execution, security, and micropayment layer for AI agents
+(analogous to Helius for Solana RPC — but for agent commerce rails).
+
+See [ECOSYSTEM_POSITIONING.md](./ECOSYSTEM_POSITIONING.md) for the full vertical matrix.
 
 Badge: `BASE L2 • EIP-7579 • x402 PROTOCOL NATIVE`
 
@@ -10,35 +13,27 @@ Badge: `BASE L2 • EIP-7579 • x402 PROTOCOL NATIVE`
 
 | Layer | Tool | Purpose |
 |-------|------|---------|
-| Framework | Next.js 14 (App Router) + TypeScript | SSR, docs, API routes |
-| Styling | Tailwind CSS | High-signal developer marketing |
-| Motion | CSS + Framer-lite keyframes | Hero rail / demo flow |
-| Site path | `website/` in this repo | Ships beside the API |
+| Framework | Next.js 14 (App Router) + TypeScript | SSR + marketing |
+| Styling | Tailwind CSS | High-density developer aesthetic |
+| Icons | Lucide | Use-case + playground UI |
+| Motion | Framer Motion | Hero / section presence |
+| Site path | `website/` | Ships beside the API |
 
-## Launch sequence
+## Page architecture
 
-1. Ship landing (`website/`) with hero, live demo strip, three pillars.
-2. Link Docs → `/docs` (API Swagger) and MCP guide (`docs/MCP.md`).
-3. Publish MCP config snippet for Claude Desktop / Cursor.
-4. Soft-launch on Base Sepolia; promote mainnet when paymaster funded.
+1. **Hero** — AgentExec brand, one headline, one supporting line, CTAs
+2. **Code playground** — MCP / x402 / TypeScript SDK tabs (interactive)
+3. **Telemetry band** — latency / gas / simulation / x402
+4. **Use cases** — Trading, Commerce, DeFi, Banking, Compute, DAO
+5. **Architecture** — Intent → Gateway → Tenderly → Base settlement
+6. **x402** — protocol explainer + middleware link
 
-## Hero copy (canonical)
+## Hero copy
 
-- **Headline:** Programmable Money Rails for Autonomous AI Agents.
-- **Subhead:** Protect agent treasuries with Tenderly dry-runs, time-bounded session keys, and HTTP 402 micro-payment paywalls.
-- **Primary CTA:** Connect MCP Server
-- **Secondary CTA:** Read Docs & Architecture
-
-## Wireframe
-
-```
-NAV: AgentExec | Docs | MCP | Pricing | Launch Portal
-HERO: Brand → headline → one sentence → CTAs → full-bleed rail visual
-DEMO: Intent → Tenderly Pass → UserOp (animated strip)
-PILLARS: x402 | Session Keys | Go Gateway
-```
-
-Run locally:
+- **Headline:** AgentExec — Execution & money rails for autonomous AI
+- **Subhead:** Session-key spend limits, Tenderly dry-runs, Go rate limiting, x402 micropayments
+- **Primary CTA:** Start Building Free
+- **Secondary CTA:** Explore Industry Use Cases
 
 ```bash
 cd website && npm install && npm run dev
