@@ -73,6 +73,11 @@ export const apiRoutes: FastifyPluginAsync = async (app) => {
     },
     owner: getAgentAddress(),
     publicBaseUrl: config.PUBLIC_BASE_URL || null,
+    x402: {
+      enabled: config.X402_ENABLED,
+      priceUSDC: config.X402_PRICE_USDC,
+      paths: config.X402_PATH_PREFIXES,
+    },
     capabilities: [
       'swap',
       'transfer',
@@ -82,6 +87,7 @@ export const apiRoutes: FastifyPluginAsync = async (app) => {
       'sponsored-safe',
       'tenderly-safety',
       'session-keys',
+      'x402-paywall',
     ],
   }));
 
@@ -224,4 +230,23 @@ export const apiRoutes: FastifyPluginAsync = async (app) => {
   });
 
   await app.register(intentExecuteRoutes);
+
+  /**
+   * Sample x402-protected resource — agents must settle PAYMENT-REQUIRED first.
+   * Enable with X402_ENABLED=true and X402_RECIPIENT=0x...
+   */
+  app.get('/v1/paid/market-pulse', async (req, reply) => {
+    return reply.send({
+      ok: true,
+      product: 'market-pulse',
+      priceUSDC: config.X402_PRICE_USDC,
+      paidBy: req.x402Payment?.payer ?? null,
+      amountWei: req.x402Payment?.amount ?? null,
+      pulse: {
+        chainId: config.chainId,
+        note: 'Demo paid payload — replace with real data feed.',
+        ts: new Date().toISOString(),
+      },
+    });
+  });
 };

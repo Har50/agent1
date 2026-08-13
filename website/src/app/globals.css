@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #eef5f7;
+  --ink: #071820;
+  --signal: #0e9aa7;
+  --ember: #e8a54b;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  color: var(--ink);
+  background: var(--bg);
+  font-family: var(--font-sans), ui-sans-serif, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: rgba(14, 154, 167, 0.25);
+}
+
+.hero-atmosphere {
+  background:
+    radial-gradient(ellipse 90% 70% at 70% 20%, rgba(20, 196, 212, 0.28), transparent 55%),
+    radial-gradient(ellipse 60% 50% at 10% 80%, rgba(232, 165, 75, 0.16), transparent 50%),
+    linear-gradient(165deg, #dce9ef 0%, #eef5f7 42%, #c5d8e0 100%);
+}
+
+.rail-grid {
+  background-image:
+    linear-gradient(rgba(7, 24, 32, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(7, 24, 32, 0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 80% 70% at 60% 40%, black 20%, transparent 75%);
+}
