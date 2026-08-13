@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "base-tx-provider": {
+      "url": "https://api.yourdomain.com/mcp",
+      "headers": {
+        "X-API-Key": "YOUR_AGENT_API_KEY"
+      }
+    }
+  }
+}

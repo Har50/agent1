@@ -1,0 +1,53 @@
+{
+  "name": "base-ai-tx-provider",
+  "version": "1.0.0",
+  "description": "Base L2 AI Transaction API — Account Abstraction, intent resolution, and agent tooling",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "dev": "tsx watch src/server.ts",
+    "start": "node dist/server.js",
+    "mcp": "tsx src/mcp/server.ts",
+    "mcp:build": "npm run build && node dist/mcp/server.js",
+    "sponsored:example": "tsx scripts/executeSponsoredTx.ts",
+    "sepolia:check": "tsx scripts/sepoliaCheck.ts",
+    "session-key:demo": "tsx scripts/issueSessionKeyDemo.ts",
+    "prod:up": "docker compose -f docker-compose.prod.yml up -d --build",
+    "prod:down": "docker compose -f docker-compose.prod.yml down",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:generate": "drizzle-kit generate",
+    "db:push": "drizzle-kit push"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "dependencies": {
+    "@fastify/cors": "^10.0.2",
+    "@fastify/rate-limit": "^10.2.2",
+    "@fastify/swagger": "^9.4.2",
+    "@fastify/swagger-ui": "^5.2.2",
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "@zerodev/permissions": "^5.6.3",
+    "@zerodev/sdk": "^5.5.10",
+    "@zerodev/session-key": "^5.5.4",
+    "dotenv": "^16.4.7",
+    "drizzle-orm": "^0.39.3",
+    "fastify": "^5.2.1",
+    "permissionless": "^0.2.47",
+    "postgres": "^3.4.5",
+    "tslib": "^2.8.1",
+    "viem": "^2.55.13",
+    "zod": "^3.24.2",
+    "zod-to-json-schema": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.4",
+    "drizzle-kit": "^0.30.4",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.5"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "base-agent-tx": {
+      "command": "node",
+      "args": ["/absolute/path/to/base-ai-tx-provider/dist/mcp/server.js"],
+      "env": {
+        "API_BASE_URL": "http://localhost:8080",
+        "AGENT_API_KEY": "your_api_key_here"
+      }
+    }
+  }
+}

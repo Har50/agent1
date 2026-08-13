@@ -1,0 +1,148 @@
+# Production orchestration — Go Gateway + Fastify + Postgres + Redis
+# Usage: docker compose -f docker-compose.prod.yml up -d --build
+#
+# Lives in base-ai-tx-provider/ only (not vda-compliance).
+
+networks:
+  agent-tx-net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+services:
+  # ---------------------------------------------------------------------------
+  # 1. PostgreSQL — Drizzle ORM (session keys, audit logs)
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: agent-tx-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secretpassword}
+      POSTGRES_DB: ${POSTGRES_DB:-agent_tx_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - agent-tx-net
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'pg_isready -U ${POSTGRES_USER:-admin} -d ${POSTGRES_DB:-agent_tx_db}',
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ---------------------------------------------------------------------------
+  # 2. Redis — Go gateway rate limiting + circuit breaker
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: agent-tx-redis
+    restart: always
+    command: redis-server --save 60 1 --loglevel notice
+    volumes:
+      - redis_data:/data
+    networks:
+      - agent-tx-net
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ---------------------------------------------------------------------------
+  # 3. Fastify execution engine (viem, permissionless, Tenderly, ZeroDev)
+  # ---------------------------------------------------------------------------
+  fastify-app:
+    build:
+      context: .
+      dockerfile: Dockerfile.fastify
+    container_name: agent-tx-fastify
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOST: 0.0.0.0
+      CHAIN_ID: ${CHAIN_ID:-8453}
+      BASE_NETWORK: ${BASE_NETWORK:-base}
+      BASE_RPC_URL: ${BASE_RPC_URL:-https://mainnet.base.org}
+      EXECUTION_MODE: ${EXECUTION_MODE:-live}
+      DATABASE_URL: postgres://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-secretpassword}@postgres:5432/${POSTGRES_DB:-agent_tx_db}
+      REDIS_URL: redis://redis:6379
+      AGENT_PRIVATE_KEY: ${AGENT_PRIVATE_KEY}
+      PIMLICO_API_KEY: ${PIMLICO_API_KEY}
+      TENDERLY_ACCESS_KEY: ${TENDERLY_ACCESS_KEY}
+      TENDERLY_ACCOUNT_SLUG: ${TENDERLY_ACCOUNT_SLUG}
+      TENDERLY_PROJECT_SLUG: ${TENDERLY_PROJECT_SLUG}
+      TENDERLY_REQUIRED: ${TENDERLY_REQUIRED:-true}
+      TENDERLY_MAX_DRAIN_USDC: ${TENDERLY_MAX_DRAIN_USDC:-500}
+      SESSION_KEY_MODE: ${SESSION_KEY_MODE:-db}
+      ZERODEV_PROJECT_ID: ${ZERODEV_PROJECT_ID:-}
+      API_KEYS: ${API_KEYS:-${GATEWAY_AUTH_SECRET:-dev-agent-key}}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - agent-tx-net
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/health || exit 1',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  # ---------------------------------------------------------------------------
+  # 4. Go API gateway — auth, sliding-window rate limit, reverse proxy
+  # ---------------------------------------------------------------------------
+  go-gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile.gateway
+    container_name: agent-tx-gateway
+    restart: always
+    ports:
+      - '${GATEWAY_PORT:-8080}:8080'
+    environment:
+      PORT: 8080
+      GATEWAY_ADDR: ':8080'
+      REDIS_URL: redis:6379
+      FASTIFY_SERVICE_URL: http://fastify-app:3000
+      UPSTREAM_URL: http://fastify-app:3000
+      EXECUTION_SERVICE_URL: http://fastify-app:3000
+      API_KEYS: ${API_KEYS:-${GATEWAY_AUTH_SECRET:-dev-agent-key}}
+      GATEWAY_AUTH_SECRET: ${GATEWAY_AUTH_SECRET:-}
+      MAX_REQUESTS_PER_MINUTE: ${MAX_REQUESTS_PER_MINUTE:-60}
+      RATE_LIMIT_PER_MIN: ${MAX_REQUESTS_PER_MINUTE:-60}
+      CIRCUIT_FAIL_LIMIT: ${CIRCUIT_FAIL_LIMIT:-10}
+      CIRCUIT_WINDOW_SEC: ${CIRCUIT_WINDOW_SEC:-60}
+    depends_on:
+      fastify-app:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - agent-tx-net
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'wget --no-verbose --tries=1 --spider http://127.0.0.1:8080/health || exit 1',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

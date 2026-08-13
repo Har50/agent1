@@ -1,0 +1,63 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: base_ai_tx
+    ports:
+      - '5433:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: api-redis
+    ports:
+      - '6380:6379'
+    volumes:
+      - redis_data:/data
+
+  execution:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file: .env.example
+    environment:
+      PORT: 8787
+      EXECUTION_MODE: mock
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/base_ai_tx
+      REDIS_URL: redis://redis:6379
+      API_KEYS: dev-agent-key
+    ports:
+      - '8787:8787'
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    environment:
+      UPSTREAM_URL: http://execution:8787
+      GATEWAY_ADDR: ':8080'
+      API_KEYS: dev-agent-key
+      REDIS_URL: redis://redis:6379
+      RATE_LIMIT_PER_MIN: 60
+      CIRCUIT_FAIL_LIMIT: 10
+      CIRCUIT_WINDOW_SEC: 60
+    ports:
+      - '8080:8080'
+    depends_on:
+      - execution
+      - redis
+
+volumes:
+  pgdata:
+  redis_data:
