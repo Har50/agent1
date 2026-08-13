@@ -1,0 +1,110 @@
+name: AgentExec CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ------------------------------------------------------------------
+  # JOB 1: TEST & DEPLOY GO GATEWAY TO RENDER
+  # ------------------------------------------------------------------
+  go-gateway-ci:
+    name: Go Gateway (Test & Deploy)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: gateway
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Go Environment
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          cache-dependency-path: gateway/go.sum
+
+      - name: Install Go Dependencies
+        run: go mod download
+
+      - name: Run Go Unit & Security Tests
+        run: go test -v ./...
+
+      - name: Trigger Render Deploy Hook
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        env:
+          RENDER_HOOK_URL: ${{ secrets.RENDER_GATEWAY_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$RENDER_HOOK_URL" ]; then
+            echo "RENDER_GATEWAY_DEPLOY_HOOK not set — skipping Render deploy"
+            exit 0
+          fi
+          echo "Triggering deployment on Render..."
+          curl -fsS -X POST "$RENDER_HOOK_URL"
+
+  # ------------------------------------------------------------------
+  # JOB 2: TEST API (Fastify / TypeScript)
+  # ------------------------------------------------------------------
+  api-ci:
+    name: Fastify API (Test & Typecheck)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm test
+      - run: npm run typecheck
+
+  # ------------------------------------------------------------------
+  # JOB 3: TEST & DEPLOY NEXT.JS WEB PORTAL TO VERCEL
+  # ------------------------------------------------------------------
+  nextjs-portal-ci:
+    name: Next.js Frontend (Test & Deploy)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: website
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: website/package-lock.json
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Typecheck & Build Next.js Site
+        run: |
+          npx tsc --noEmit
+          npm run build
+
+      - name: Deploy Staging Preview to Vercel (PRs)
+        if: github.event_name == 'pull_request' && secrets.VERCEL_TOKEN != ''
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          working-directory: website
+
+      - name: Deploy Production to Vercel (Main Branch)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push' && secrets.VERCEL_TOKEN != ''
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          working-directory: website

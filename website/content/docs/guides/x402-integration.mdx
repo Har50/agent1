@@ -1,0 +1,49 @@
+---
+title: x402 Micropayment Integration
+description: Handle HTTP 402 challenges and attach PAYMENT-SIGNATURE headers.
+---
+
+The x402 protocol leverages HTTP 402 status codes to require instant micro-payments from AI agents before returning API data.
+
+```ts
+// Client-side execution when an agent encounters an HTTP 402 challenge
+import { AgentExec } from "@agent-exec/sdk";
+
+const agent = new AgentExec({ apiKey: process.env.AGENTEXEC_API_KEY! });
+
+async function fetchPaywalledData(url: string) {
+  let response = await fetch(url);
+
+  // If HTTP 402 Payment Required, parse challenge and sign micropayment
+  if (response.status === 402) {
+    const challengeHeader = response.headers.get("PAYMENT-REQUIRED");
+
+    if (!challengeHeader) throw new Error("Missing x402 challenge header");
+
+    // Automatically generate and sign EIP-3009 transfer authorization
+    const paymentHeader = await agent.x402.signPaymentHeader(challengeHeader);
+
+    // Retry request with signed authorization payload
+    response = await fetch(url, {
+      headers: {
+        "PAYMENT-SIGNATURE": paymentHeader,
+      },
+    });
+  }
+
+  return response.json();
+}
+```
+
+## Try the sample route
+
+```bash
+X402_ENABLED=true \
+X402_RECIPIENT=0xYourTreasury \
+X402_PRICE_USDC=0.01 \
+npm run dev
+
+curl -i http://127.0.0.1:8787/v1/paid/market-pulse \
+  -H "X-API-Key: dev-agent-key"
+# → 402 + PAYMENT-REQUIRED
+```

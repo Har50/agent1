@@ -1,0 +1,18 @@
+---
+title: x402 HTTP Micropayment Protocol
+description: Machine-readable USDC payments over HTTP 402.
+---
+
+x402 turns dormant HTTP 402 into a challenge/response flow:
+
+1. Client hits a paid route without `PAYMENT-SIGNATURE`
+2. Server returns **402** + `PAYMENT-REQUIRED` (base64 challenge)
+3. Agent signs EIP-3009 authorization and retries with `PAYMENT-SIGNATURE`
+4. Server verifies amount/recipient and returns the payload + `PAYMENT-RESPONSE`
+
+Middleware: `src/middleware/x402Paywall.ts`
+
+Guides:
+
+- [Protecting APIs](/docs/guides/protecting-apis)
+- [Client integration](/docs/guides/x402-integration)

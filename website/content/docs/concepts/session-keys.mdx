@@ -1,0 +1,15 @@
+---
+title: Session-Bounded Agent Wallets (EIP-7579)
+description: Scoped keys with spend caps, allowlists, and TTL.
+---
+
+Session keys let agents sign within policy — never holding the master private key.
+
+Typical constraints:
+
+- `maxDailySpendUSD` / per-call USDC caps
+- `allowedTargets` contract allowlist
+- `allowedSelectors` function selectors
+- `validUntil` expiration
+
+See the hands-on guide: [Spending Caps & Whitelists](/docs/guides/session-keys).

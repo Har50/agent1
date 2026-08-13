@@ -1,0 +1,12 @@
+---
+title: Agent-to-Agent Escrows
+description: Conditional settlement until deliverables verify.
+---
+
+Pattern:
+
+1. Buyer agent locks USDC in an escrow contract (session-key scoped)
+2. Seller agent delivers work (data, code, inference)
+3. Verifier (on-chain attest or off-chain oracle) releases funds
+
+Use session keys to bound escrow deposit size and allowed escrow contract addresses. Combine with Tenderly simulation before deposit UserOps.

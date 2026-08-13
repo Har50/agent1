@@ -1,0 +1,33 @@
+---
+title: Quickstart — Model Context Protocol (MCP)
+description: Wire AgentExec into Claude Desktop or Cursor in minutes.
+---
+
+## Install
+
+```bash
+npm install @agent-exec/mcp-server
+```
+
+## Claude Desktop / Cursor config
+
+```json
+{
+  "mcpServers": {
+    "agent-exec": {
+      "command": "npx",
+      "args": ["-y", "@agent-exec/mcp-server"],
+      "env": {
+        "API_BASE_URL": "http://localhost:8080",
+        "AGENT_API_KEY": "dev-agent-key"
+      }
+    }
+  }
+}
+```
+
+## Verify
+
+From the agent chat, call `execute_onchain_intent` (or list tools) against a Base Sepolia target in `mock` / `simulate` mode first.
+
+See also: [Claude & Cursor Integration](/docs/guides/claude-cursor).

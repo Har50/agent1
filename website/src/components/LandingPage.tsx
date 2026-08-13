@@ -40,10 +40,7 @@ export function LandingPage() {
             <a href="#x402" className="transition hover:text-cyan-300">
               x402 Protocol
             </a>
-            <a
-              href="https://github.com/Har50/agent1/blob/main/docs/ARCHITECTURE.md"
-              className="transition hover:text-cyan-300"
-            >
+            <a href="/docs" className="transition hover:text-cyan-300">
               Docs
             </a>
           </div>

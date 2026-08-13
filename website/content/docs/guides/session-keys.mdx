@@ -1,0 +1,47 @@
+---
+title: Setting Up EIP-7579 Session Key Policies
+description: Grant agents scoped signing rights without exposing master keys.
+---
+
+Session keys allow autonomous AI agents to sign transactions within strict limits (max daily USD spending, specific target contracts, and expiration timestamps) without raw access to the main account's private keys.
+
+```ts
+import { AgentExec, SessionKeyPolicy } from "@agent-exec/sdk";
+import { parseUnits } from "viem";
+
+const client = new AgentExec({ apiKey: process.env.AGENTEXEC_API_KEY! });
+
+// 1. Define EIP-7579 Session Boundary Policy
+const policy: SessionKeyPolicy = {
+  // Limit maximum total drawdown per 24-hour window
+  maxDailySpendUSD: 50.0,
+
+  // Restrict execution solely to the USDC contract on Base L2
+  allowedTargets: ["0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"],
+
+  // Allowed function selectors (e.g., transfer(address,uint256))
+  allowedSelectors: ["0xa9059cbb"],
+
+  // Set session expiration (Unix timestamp: 7 days from now)
+  validUntil: Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60,
+};
+
+// 2. Grant session key to the local agent instance
+const sessionKey = await client.createSessionKey(policy);
+console.log("Granted Session Key Address:", sessionKey.address);
+```
+
+## HTTP equivalent (this repo today)
+
+```bash
+curl -X POST http://127.0.0.1:8787/v1/session-keys/issue \
+  -H "X-API-Key: dev-agent-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "agentId": "trading-bot",
+    "maxSpendUsdc": 50,
+    "allowedTargets": ["0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"],
+    "allowedSelectors": ["0xa9059cbb"],
+    "ttlHours": 168
+  }'
+```

@@ -1,0 +1,21 @@
+---
+title: API Key Management
+description: Authenticate agents with X-API-Key headers.
+---
+
+All protected routes require:
+
+```http
+X-API-Key: ax_live_...
+```
+
+Configure accepted keys via `API_KEYS` (comma-separated) in the API environment.
+
+## Environments
+
+| Key prefix (convention) | Use |
+|-------------------------|-----|
+| `ax_test_` / `dev-` | Local / Sepolia |
+| `ax_live_` | Mainnet production |
+
+Rotate keys by updating `API_KEYS` and redeploying — never commit live keys.

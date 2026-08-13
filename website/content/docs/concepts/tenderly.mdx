@@ -1,0 +1,16 @@
+---
+title: Pre-Flight Simulation & Dry-Runs (Tenderly)
+description: Revert and drain prevention before UserOp broadcast.
+---
+
+When Tenderly credentials are configured, AgentExec simulates calldata and rejects unsafe intents (revert / excessive drain) with HTTP 422 before settlement.
+
+Env:
+
+```bash
+TENDERLY_ACCESS_KEY=
+TENDERLY_ACCOUNT_SLUG=
+TENDERLY_PROJECT_SLUG=
+TENDERLY_REQUIRED=true
+TENDERLY_MAX_DRAIN_USDC=500
+```

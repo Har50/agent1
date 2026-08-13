@@ -1,0 +1,15 @@
+---
+title: TypeScript / Node.js SDK
+description: High-level client mapping to /v1 HTTP routes.
+---
+
+Primary methods (contract):
+
+| Method | Maps to |
+|--------|---------|
+| `executeIntent` | `POST /v1/intents` / execute |
+| `createSessionKey` | `POST /v1/session-keys/issue` |
+| `x402.signPaymentHeader` | EIP-3009 auth for paywalled routes |
+| `getMeta` | `GET /v1/meta` |
+
+Interactive API: run the Fastify service and open `/docs` (Swagger UI).

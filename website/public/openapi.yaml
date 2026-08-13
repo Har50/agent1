@@ -1,0 +1,64 @@
+openapi: 3.0.3
+info:
+  title: AgentExec API
+  version: 1.0.0
+  description: Base L2 AI Transaction Provider — intents, session keys, x402 paywalls.
+servers:
+  - url: http://127.0.0.1:8787
+    description: Local Fastify
+  - url: http://127.0.0.1:8080
+    description: Local Go gateway
+paths:
+  /health:
+    get:
+      summary: Health check
+      security: []
+      responses:
+        '200':
+          description: OK
+  /v1/meta:
+    get:
+      summary: Runtime capabilities
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: Meta payload including x402 and session-key flags
+  /v1/intents:
+    post:
+      summary: Submit an execution intent
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: Intent accepted / executed
+  /v1/session-keys/issue:
+    post:
+      summary: Issue a scoped session key
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: Session key created
+  /v1/paid/market-pulse:
+    get:
+      summary: Sample x402-protected resource
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - in: header
+          name: PAYMENT-SIGNATURE
+          schema:
+            type: string
+          required: false
+      responses:
+        '200':
+          description: Paid payload
+        '402':
+          description: Payment Required (x402 challenge)
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key

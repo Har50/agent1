@@ -1,0 +1,12 @@
+---
+title: Static Analysis & AI Security Firewall
+description: Go gateway rate limits and circuit breakers in front of spend.
+---
+
+The Go gateway sits in front of the Fastify API:
+
+- Redis (or in-memory) **sliding-window** rate limits
+- Failure **circuit breaker** to protect paymaster float
+- Path for private RPC routing / policy hooks
+
+Run locally via `docker-compose.prod.yml` or the `gateway/` binary.

@@ -14,6 +14,8 @@ Standalone Base L2 API for AI agents: x402 HTTP paywalls, EIP-7579 session keys,
 | [Ecosystem positioning](./docs/ECOSYSTEM_POSITIONING.md) | Vertical use-case matrix |
 | [Architecture](./docs/ARCHITECTURE.md) | System design |
 | [Website launch](./docs/WEBSITE_LAUNCH.md) | Portal strategy + hero copy |
+| [Docs portal](./docs/DOCS_PORTAL.md) | MDX docs nav (`/docs`) |
+| [CI/CD](./docs/CICD.md) | GitHub Actions → Render + Vercel |
 | [MCP](./docs/MCP.md) | Cursor / Claude Desktop |
 | [Production roadmap](./docs/PRODUCTION_ROADMAP.md) | Deploy checklist |
 | [Master plan](./docs/MASTER_PLAN.md) | Product plan |

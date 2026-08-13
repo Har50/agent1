@@ -1,0 +1,19 @@
+---
+title: Installing @agent-exec/sdk
+description: TypeScript SDK for intents, session keys, and x402 client flows.
+---
+
+```bash
+npm install @agent-exec/sdk viem
+```
+
+```ts
+import { AgentExec } from "@agent-exec/sdk";
+
+const agent = new AgentExec({
+  apiKey: process.env.AGENTEXEC_API_KEY!,
+  baseUrl: process.env.AGENTEXEC_BASE_URL ?? "https://api.agentexec.io",
+});
+```
+
+> Note: the published SDK package name is the public contract — this repo currently ships the Fastify API + MCP server. Use HTTP + MCP today; SDK wrappers map 1:1 to `/v1/*` routes.

@@ -1,0 +1,17 @@
+---
+title: Go Gateway API Specifications
+description: Edge rate limiting and deploy topology.
+---
+
+Module: `gateway/`
+
+- Sliding-window limiter (Redis or memory)
+- Circuit breaker on repeated failures
+- Proxies authenticated traffic to the Fastify API
+
+```bash
+cd gateway
+go test ./...
+```
+
+Production: `Dockerfile.gateway` + `docker-compose.prod.yml`.

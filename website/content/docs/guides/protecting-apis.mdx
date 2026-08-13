@@ -1,0 +1,17 @@
+---
+title: Protecting APIs with x402 Middleware
+description: Register the Fastify paywall on selected path prefixes.
+---
+
+```ts
+import { registerX402Paywall } from "../middleware/x402Paywall.js";
+
+registerX402Paywall(app, {
+  priceUSDC: "0.005",
+  recipientAddress: "0xYourTreasuryAddress...",
+  chainId: 8453,
+  pathPrefixes: ["/v1/paid"],
+});
+```
+
+Env flags: `X402_ENABLED`, `X402_PRICE_USDC`, `X402_RECIPIENT`, `X402_PATH_PREFIXES`.

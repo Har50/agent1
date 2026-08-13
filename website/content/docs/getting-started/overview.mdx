@@ -1,0 +1,21 @@
+---
+title: Overview & Architecture
+description: The execution, security, and micropayment layer for autonomous AI agents.
+---
+
+AgentExec is the programmable bridge between LLM intent and Base L2 settlement.
+
+## Stack
+
+1. **MCP / SDK** — agents express intents from Claude, Cursor, or custom runtimes
+2. **x402 paywall** — HTTP 402 challenges for machine-readable USDC micropayments
+3. **EIP-7579 session keys** — spend caps, allowlists, TTL without exposing master keys
+4. **Tenderly pre-flight** — dry-run simulation before broadcast
+5. **Go gateway** — Redis sliding-window rate limits + circuit breaker
+6. **Pimlico UserOps** — gasless settlement on Base
+
+## Where to go next
+
+- [Quickstart: MCP](/docs/getting-started/quickstart-mcp)
+- [x402 concept](/docs/concepts/x402)
+- [Session keys guide](/docs/guides/session-keys)
