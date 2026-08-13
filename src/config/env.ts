@@ -50,14 +50,25 @@ const envSchema = z.object({
   /** Public base URL for hosted MCP / production docs */
   PUBLIC_BASE_URL: z.string().optional().default(''),
   MCP_TRANSPORT: z.enum(['stdio', 'http']).default('stdio'),
+  /** x402 HTTP micropayment paywall */
+  X402_ENABLED: z
+    .enum(['true', 'false', '0', '1'])
+    .optional()
+    .default('false')
+    .transform((v) => v === 'true' || v === '1'),
+  X402_PRICE_USDC: z.string().default('0.01'),
+  X402_RECIPIENT: z.string().optional().default(''),
+  /** Comma-separated path prefixes protected by x402 (default /v1/paid) */
+  X402_PATH_PREFIXES: z.string().optional().default('/v1/paid'),
 });
 
-export type AppConfig = z.infer<typeof envSchema> & {
+export type AppConfig = Omit<z.infer<typeof envSchema>, 'X402_PATH_PREFIXES'> & {
   apiKeys: Set<string>;
   rpcUrls: string[];
   allowedTargets: Set<string>;
   tenderlyEnabled: boolean;
   chainId: 8453 | 84532;
+  X402_PATH_PREFIXES: string[];
 };
 
 function parseList(value: string): string[] {
@@ -110,7 +121,14 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
       parseList(parsed.DEFAULT_ALLOWED_TARGETS).map((a) => a.toLowerCase())
     ),
     tenderlyEnabled,
+    X402_PATH_PREFIXES: parseList(parsed.X402_PATH_PREFIXES),
   };
 }
 
-export const config = loadConfig();
+/** Mutable singleton — call reloadConfig() in tests after mutating process.env. */
+export let config: AppConfig = loadConfig();
+
+export function reloadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
+  config = loadConfig(env);
+  return config;
+}
