@@ -1,0 +1,6 @@
+out/
+cache/
+broadcast/
+slither-out/
+.venv/
+lcov.info
