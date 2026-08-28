@@ -16,6 +16,8 @@ Standalone Base L2 API for AI agents: x402 HTTP paywalls, EIP-7579 session keys,
 | [MCP](./docs/MCP.md) | Cursor / Claude Desktop |
 | [Production roadmap](./docs/PRODUCTION_ROADMAP.md) | Deploy checklist |
 | [Master plan](./docs/MASTER_PLAN.md) | Product plan |
+| [WebMCP SDK quickstart](./docs/SDK_QUICKSTART.md) | Browser → AgentExec adapter |
+| [Executive pitch deck](./docs/PITCH_DECK.md) | One-page technical summary |
 
 ## Quick start (API)
 

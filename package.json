@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "Base L2 AI Transaction API — Account Abstraction, intent resolution, and agent tooling",
   "main": "dist/index.js",
+  "exports": {
+    ".": "./dist/index.js",
+    "./sdk": "./dist/sdk/index.js"
+  },
   "type": "module",
   "scripts": {
     "build": "tsc",
@@ -17,6 +21,7 @@
     "prod:up": "docker compose -f docker-compose.prod.yml up -d --build",
     "prod:down": "docker compose -f docker-compose.prod.yml down",
     "test": "vitest run",
+    "test:integration": "vitest run tests/integration",
     "test:watch": "vitest",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push"
