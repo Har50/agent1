@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { agentExecSDK } from '@/lib/agentexec-sdk';
+import { useWebMCP } from '@/components/WebMCPProvider';
 
 interface ExecutionLog {
   timestamp: string;
@@ -12,6 +13,7 @@ interface ExecutionLog {
 }
 
 export default function WebMCPDemoPage() {
+  const { registerTool, getRegisteredTools } = useWebMCP();
   const [logs, setLogs] = useState<ExecutionLog[]>([]);
   const [isExecuting, setIsExecuting] = useState(false);
   const [sessionBudget, setSessionBudget] = useState(5.0);
@@ -35,7 +37,29 @@ export default function WebMCPDemoPage() {
   );
 
   useEffect(() => {
-    const registered = agentExecSDK.registerWebMcpTool({
+    registerTool({
+      name: 'purchase_premium_data',
+      description: 'Fetch live AI agent analytics feed on Base L2',
+      priceUSD: 0.1,
+      parameters: {
+        type: 'object',
+        properties: {
+          endpoint: { type: 'string' },
+        },
+      },
+      handler: async (args) => {
+        const res = await agentExecSDK.executeWithInterceptor({
+          url: '/api/v1/premium-data',
+          method: 'POST',
+          usdcPrice: '0.10',
+          body: args,
+        });
+        return res.json();
+      },
+    });
+
+    // Also mirror into navigator via legacy helper when available
+    agentExecSDK.registerWebMcpTool({
       name: 'purchase_premium_data',
       description: 'Fetch live AI agent analytics feed on Base L2',
       parameters: {
@@ -45,14 +69,16 @@ export default function WebMCPDemoPage() {
         },
       },
     });
-    setWebmcpState(registered ? 'ACTIVE' : 'FALLBACK');
+
+    const count = getRegisteredTools().length;
+    setWebmcpState(count > 0 ? 'ACTIVE' : 'FALLBACK');
     addLog(
-      registered
-        ? 'WebMCP tool registered on navigator.modelContext'
-        : 'WebMCP API unavailable — demo uses in-page trigger (fallback)',
-      registered ? 'info' : 'warning'
+      count > 0
+        ? `WebMCPProvider registered ${count} tool(s) on navigator.modelContext`
+        : 'WebMCP registry empty — demo uses in-page trigger',
+      count > 0 ? 'info' : 'warning'
     );
-  }, [addLog]);
+  }, [addLog, getRegisteredTools, registerTool]);
 
   const handleRunAgentAction = async () => {
     setIsExecuting(true);
