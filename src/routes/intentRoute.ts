@@ -12,6 +12,7 @@ import {
 } from 'viem';
 import {
   intentExecuteBodySchema,
+  simulateTransaction,
   verifySimulationHook,
 } from '../middleware/simulateHook.js';
 import { config } from '../config/env.js';
@@ -116,7 +117,8 @@ async function handleWebMcpIntent(
   if (amountUSD > PER_INTENT_SPEND_CAP_USD) {
     return reply.status(402).send({
       error: 'Policy Violation',
-      message: `Transaction amount exceeds per-intent spend cap of $${PER_INTENT_SPEND_CAP_USD.toFixed(2)} USDC`,
+      message:
+        'Transaction amount exceeds per-intent spend cap',
     });
   }
 
@@ -169,6 +171,23 @@ async function handleWebMcpIntent(
   };
 
   request.log.info({ tool: body.toolName, amountUSD }, 'WebMCP x402 intent');
+
+  // Tenderly pre-flight (mock pass when credentials are absent)
+  try {
+    await simulateTransaction({
+      from: fromAddress,
+      to: body.targetContract,
+      data: calldata,
+      value: '0',
+      networkId: String(config.chainId),
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return reply.status(422).send({
+      error: 'Simulation Failed',
+      message,
+    });
+  }
 
   const intentId = newIntentId();
   const result = await executeUserOperation(call, intentId, {
