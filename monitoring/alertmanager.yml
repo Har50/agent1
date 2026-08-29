@@ -1,0 +1,16 @@
+global:
+  resolve_timeout: 5m
+
+route:
+  group_by: [alertname]
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 1h
+  receiver: pagerduty-or-webhook
+
+receivers:
+  - name: pagerduty-or-webhook
+    webhook_configs:
+      # Replace with Slack, Discord, or PagerDuty webhook URL
+      - url: http://host.docker.internal:5001/webhook
+        send_resolved: true

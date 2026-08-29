@@ -1,0 +1,106 @@
+# AgentExec — unified Render Blueprint
+# Deploys: Next.js demo playground, Fastify gateway API, Go paymaster keeper.
+# Docs: https://render.com/docs/blueprint-spec
+#
+# After first deploy, set secret env vars in the Render dashboard (sync: false).
+
+services:
+  # 1. Next.js WebMCP Demo Playground & Frontend
+  - type: web
+    name: agentexec-demo-playground
+    runtime: node
+    region: oregon
+    plan: starter
+    rootDir: website
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_VERSION
+        value: "22.14.0"
+      - key: PORT
+        value: "3001"
+      - key: NEXT_PUBLIC_AGENTEXEC_URL
+        fromService:
+          type: web
+          name: agentexec-gateway-api
+          property: host
+      - key: NEXT_PUBLIC_AGENT_API_KEY
+        sync: false
+
+  # 2. Fastify Execution & Safety Gateway
+  - type: web
+    name: agentexec-gateway-api
+    runtime: node
+    region: oregon
+    plan: starter
+    buildCommand: npm ci && npm run build
+    startCommand: node dist/server.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: "22.14.0"
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "8787"
+      - key: HOST
+        value: "0.0.0.0"
+      - key: CHAIN_ID
+        value: "84532" # Base Sepolia; set "8453" for Mainnet
+      - key: BASE_NETWORK
+        value: base-sepolia
+      - key: EXECUTION_MODE
+        value: live
+      - key: BASE_RPC_URL
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: API_KEYS
+        sync: false
+      - key: AGENT_PRIVATE_KEY
+        sync: false
+      - key: TENDERLY_ACCOUNT_SLUG
+        sync: false
+      - key: TENDERLY_PROJECT_SLUG
+        sync: false
+      - key: TENDERLY_ACCESS_KEY
+        sync: false
+      - key: TENDERLY_REQUIRED
+        value: "true"
+      - key: PIMLICO_API_KEY
+        sync: false
+      - key: X402_ENABLED
+        value: "true"
+      - key: X402_RECIPIENT
+        sync: false
+      - key: WEBMCP_PER_INTENT_CAP_USD
+        value: "10"
+      - key: SENTRY_DSN
+        sync: false
+
+  # 3. Go Paymaster Keeper Daemon
+  - type: worker
+    name: agentexec-go-keeper
+    runtime: go
+    region: oregon
+    plan: starter
+    rootDir: gateway
+    buildCommand: go build -o keeper ./cmd/keeper
+    startCommand: ./keeper
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: BASE_RPC_URL
+        sync: false
+      - key: PAYMASTER_TOPUP_CONTRACT
+        sync: false
+      - key: KEEPER_PRIVATE_KEY
+        sync: false
+      - key: KEEPER_POLL_SECONDS
+        value: "30"
+      - key: METRICS_PORT
+        value: "9090"
+      - key: SENTRY_DSN
+        sync: false

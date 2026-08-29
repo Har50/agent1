@@ -1,0 +1,56 @@
+# Local / VPS observability stack for AgentExec.
+# Scrapes the Go keeper metrics port (default host.docker.internal:9090).
+#
+# Usage:
+#   docker compose -f docker-compose.monitoring.yml up -d
+#   open http://localhost:3000  (Grafana — admin / agentexec_secret)
+#   open http://localhost:9090  (Prometheus)
+#   open http://localhost:9300  (Alertmanager)
+
+services:
+  prometheus:
+    image: prom/prometheus:v2.47.0
+    container_name: agentexec_prometheus
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - prom_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.console.libraries=/usr/share/prometheus/console_libraries"
+      - "--web.console.templates=/usr/share/prometheus/consoles"
+    ports:
+      - "9090:9090"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  alertmanager:
+    image: prom/alertmanager:v0.26.0
+    container_name: agentexec_alertmanager
+    volumes:
+      - ./monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    command:
+      - "--config.file=/etc/alertmanager/alertmanager.yml"
+      - "--web.listen-address=:9300"
+    ports:
+      - "9300:9300"
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:10.1.0
+    container_name: agentexec_grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=agentexec_secret
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+    restart: unless-stopped
+
+volumes:
+  prom_data:
+  grafana_data:

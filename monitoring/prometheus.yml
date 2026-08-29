@@ -1,0 +1,25 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - alerts.yml
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ["alertmanager:9300"]
+
+scrape_configs:
+  # Go keeper /metrics (run keeper with METRICS_PORT=9090 on the host)
+  - job_name: paymaster_keeper
+    static_configs:
+      - targets: ["host.docker.internal:9090"]
+        labels:
+          service: agentexec-go-keeper
+
+  # Optional: Fastify gateway health scrape via blackbox or /metrics when exposed
+  # - job_name: agentexec_gateway
+  #   metrics_path: /metrics
+  #   static_configs:
+  #     - targets: ["host.docker.internal:8787"]
