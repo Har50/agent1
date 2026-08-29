@@ -18,6 +18,8 @@ Standalone Base L2 API for AI agents: x402 HTTP paywalls, EIP-7579 session keys,
 | [Master plan](./docs/MASTER_PLAN.md) | Product plan |
 | [WebMCP SDK quickstart](./docs/SDK_QUICKSTART.md) | Browser → AgentExec adapter |
 | [Executive pitch deck](./docs/PITCH_DECK.md) | One-page technical summary |
+| [Keeper verification](./docs/KEEPER_VERIFICATION.md) | Base Sepolia drain → auto top-up |
+| [Mainnet checklist](./docs/MAINNET_CHECKLIST.md) | Production go-live |
 
 ## Quick start (API)
 
@@ -49,6 +51,7 @@ API_BASE_URL=http://localhost:8080 AGENT_API_KEY=dev-agent-key npm run mcp
 ```bash
 cd website && npm install && npm run dev
 # http://localhost:3001
+# Demo playground: http://localhost:3001/demo
 ```
 
 ## Middleware
