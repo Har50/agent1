@@ -1,10 +1,68 @@
-node_modules/
-dist/
+# Secret Keys & Credentials
+*.key
+*.pem
+*.pfx
+.deployer_key*
+contracts/.deployer_key*
+keystore/
+*.keystore
+
+# Environment Variables
 .env
-.env.local
-.env.production
-.env.*.local
-*.log
-coverage/
-.drizzle/
+.env.*
+!.env.example
+!.env.production.example
+!.env*.example
+
+# Compiled Binaries & Executables
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+gateway/keeper
+gateway/keeper.exe
+gateway/gateway
+gateway/gateway.exe
 gateway/bin/
+
+# Node.js & Web (website/ & root)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.next/
+out/
+build/
+dist/
+*.tsbuildinfo
+
+# Foundry & Hardhat (Smart Contracts)
+cache/
+cache_hardhat/
+# Foundry `out/` lives under contracts/; keep pattern scoped to avoid clashing with other outs
+contracts/out/
+contracts/cache/
+artifacts/
+typechain/
+typechain-types/
+coverage/
+coverage.json
+.drizzle/
+
+# Go Build Output & Cache
+*.out
+*.test
+*.prof
+
+# Operating System & IDE Files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
