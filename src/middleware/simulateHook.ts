@@ -6,12 +6,17 @@ import type { FastifyReply, FastifyRequest } from 'fastify';
 import { z } from 'zod';
 import {
   simulateOnTenderly,
+  simulateTransaction,
+  type SimulationParams,
   type SimulationResult,
 } from '../services/tenderly.js';
 import { config } from '../config/env.js';
 import { resolveBaseChain } from '../services/safeAccount.js';
 import { getSmartAccountAddress } from '../services/safeAccount.js';
 import { getAgentAddress } from '../services/userOp.js';
+
+export type { SimulationParams, SimulationResult };
+export { simulateTransaction };
 
 export const intentExecuteBodySchema = z.object({
   networkId: z.string().optional(),

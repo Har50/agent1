@@ -1,0 +1,102 @@
+name: AgentExec CI Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  smart-contracts:
+    name: Smart Contract Tests & Static Analysis
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: contracts
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+
+      - name: Forge build
+        run: |
+          forge --version
+          forge build
+
+      - name: Run Forge Unit & Fuzz Tests
+        run: forge test --profile ci -vv
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install Slither
+        run: pip install slither-analyzer
+
+      - name: Run Slither Static Analysis
+        run: |
+          slither . \
+            --compile-force-framework foundry \
+            --filter-paths "lib/|src/mocks/" \
+            --exclude-dependencies \
+            --fail-high
+
+  integration-tests:
+    name: WebMCP & AgentExec Integration Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Run Vitest Integration Suite
+        run: npx vitest run tests/integration/webmcp-agentexec.test.ts
+        env:
+          NODE_ENV: test
+          EXECUTION_MODE: mock
+          API_KEYS: dev-agent-key
+          AGENT_API_KEY: dev-agent-key
+
+  go-keeper:
+    name: Go Keeper Daemon Build & Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: gateway
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+          cache-dependency-path: gateway/go.sum
+
+      - name: Build Keeper Binary
+        run: go build -v -o keeper ./cmd/keeper
+
+      - name: Run Go Tests
+        run: go test -v ./...

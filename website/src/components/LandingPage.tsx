@@ -6,6 +6,7 @@ import { HeroVisual } from './HeroVisual';
 const nav = [
   { href: '#docs', label: 'Docs' },
   { href: '#mcp', label: 'MCP Tool' },
+  { href: '/demo', label: 'Playground' },
   { href: '#pricing', label: 'Pricing' },
 ];
 

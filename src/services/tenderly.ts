@@ -35,8 +35,75 @@ export interface BalanceChange {
 export interface SimulationResult {
   success: boolean;
   errorMessage?: string;
+  /** Alias used by middleware / SDK callers */
+  errorReason?: string;
   gasUsed?: number;
   balanceChanges?: BalanceChange[];
+  /** Dashboard deep-link when Tenderly returns a simulation id */
+  simulationUrl?: string;
+  simulationId?: string;
+}
+
+/** Friendly params shape used by middleware / SDK callers */
+export interface SimulationParams {
+  from: string;
+  to: string;
+  data: string;
+  value?: string;
+  /** e.g. "8453" Base mainnet, "84532" Base Sepolia */
+  networkId?: string;
+}
+
+/**
+ * Pre-flight simulation with mock fallback when Tenderly credentials are absent.
+ * Prefer this from middleware/tools; use `simulateOnTenderly` when credentials are required.
+ */
+export async function simulateTransaction(
+  params: SimulationParams
+): Promise<SimulationResult> {
+  const accessKey =
+    config.TENDERLY_ACCESS_KEY || process.env.TENDERLY_ACCESS_KEY;
+  const accountSlug =
+    config.TENDERLY_ACCOUNT_SLUG || process.env.TENDERLY_ACCOUNT_SLUG;
+  const projectSlug =
+    config.TENDERLY_PROJECT_SLUG || process.env.TENDERLY_PROJECT_SLUG;
+
+  if (!accessKey || !accountSlug || !projectSlug) {
+    console.warn(
+      '[Tenderly] Missing API credentials; executing mock simulation pass.'
+    );
+    return {
+      success: true,
+      gasUsed: 120_000,
+    };
+  }
+
+  const result = await simulateOnTenderly({
+    networkId: params.networkId || String(resolveBaseChain().id),
+    from: params.from as `0x${string}`,
+    to: params.to as `0x${string}`,
+    input: params.data as `0x${string}`,
+    value: params.value || '0',
+    save: true,
+  });
+
+  if (!result.success) {
+    throw new Error(
+      `Tenderly pre-flight simulation reverted: ${
+        result.errorMessage || result.errorReason || 'Unknown transaction failure'
+      }`
+    );
+  }
+
+  const simulationUrl = result.simulationId
+    ? `https://dashboard.tenderly.co/${accountSlug}/${projectSlug}/simulator/${result.simulationId}`
+    : `https://dashboard.tenderly.co/${accountSlug}/${projectSlug}/simulator`;
+
+  return {
+    ...result,
+    errorReason: result.errorMessage,
+    simulationUrl,
+  };
 }
 
 export type SafetyVerdict =
@@ -67,11 +134,15 @@ type TenderlyAssetChange = {
 
 type TenderlySimulateResponse = {
   simulation?: {
+    id?: string;
     status?: boolean;
     gas_used?: number;
     error_message?: string;
   };
   transaction?: {
+    status?: boolean;
+    gas_used?: number;
+    error_message?: string;
     transaction_info?: {
       asset_changes?: TenderlyAssetChange[];
       balance_changes?: TenderlyAssetChange[];
@@ -127,9 +198,11 @@ export async function simulateOnTenderly(
   }
 
   const data = (await response.json()) as TenderlySimulateResponse;
-  const isSuccess = data.simulation?.status === true;
+  const isSuccess =
+    data.simulation?.status === true || data.transaction?.status === true;
   const errorMessage =
     data.simulation?.error_message ||
+    data.transaction?.error_message ||
     data.transaction?.transaction_info?.call_trace?.error ||
     (isSuccess ? undefined : 'Execution reverted on-chain');
 
@@ -149,11 +222,18 @@ export async function simulateOnTenderly(
     direction: bc.direction,
   }));
 
+  const simulationId = data.simulation?.id;
+  const gasUsed = Number(
+    data.simulation?.gas_used ?? data.transaction?.gas_used ?? 0
+  );
+
   return {
     success: isSuccess,
     errorMessage,
-    gasUsed: data.simulation?.gas_used,
+    errorReason: errorMessage,
+    gasUsed,
     balanceChanges,
+    simulationId,
   };
 }
 
