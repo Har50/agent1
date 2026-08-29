@@ -1,66 +1,142 @@
-# AgentExec WebMCP Client SDK
+# @agentexec/sdk + WebMCP Integration Guide
 
-Connect browser-native WebMCP actions directly to AgentExec's execution safety net and Base L2 micropayment engine.
+This guide details how to integrate browser-native AI agent tool discovery (**WebMCP**) with backend L2 gasless execution and **x402** micropayments (**AgentExec**).
 
 ## Installation
 
-From this monorepo (during development):
+```bash
+npm install @agentexec/sdk
+# or
+pnpm add @agentexec/sdk
+```
+
+**This monorepo (pre-publish):**
 
 ```bash
 npm install
 npm run build
 ```
 
-When published:
+| Published import | Monorepo path |
+|------------------|---------------|
+| `@agentexec/sdk` | `src/sdk/webmcp-adapter.ts` (+ `src/sdk/index.ts`) |
+| `@agentexec/sdk/react` | `website/src/components/WebMCPProvider.tsx` |
+
+## Step 1: Wrap Your Application with `<WebMCPProvider>`
+
+In your root layout (`app/layout.tsx` or `pages/_app.tsx`), wrap your application to initialize `window.navigator.modelContext`.
+
+```tsx
+import { WebMCPProvider } from "@agentexec/sdk/react";
+// Monorepo: import { WebMCPProvider } from "@/components/WebMCPProvider";
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body>
+        <WebMCPProvider>{children}</WebMCPProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+## Step 2: Register a WebMCP Tool on a Page
+
+Expose structured actions to visiting AI agents (e.g. Anthropic Computer Use, Stagehand, browser tools) without relying on DOM scraping.
+
+```tsx
+"use client";
+
+import { useEffect } from "react";
+import { useWebMCP } from "@agentexec/sdk/react";
+// Monorepo: import { useWebMCP } from "@/components/WebMCPProvider";
+
+export function PremiumDataWidget() {
+  const { registerTool } = useWebMCP();
+
+  useEffect(() => {
+    registerTool({
+      name: "fetch_market_analytics",
+      description:
+        "Access real-time on-chain analytics for Base L2 ecosystem",
+      priceUSD: 0.1, // Cost in USDC per call
+      parameters: {
+        type: "object",
+        properties: {
+          timeframe: { type: "string", enum: ["1h", "24h", "7d"] },
+        },
+        required: ["timeframe"],
+      },
+      handler: async (args) => {
+        console.log("Agent requested timeframe:", args.timeframe);
+        // Optional: call agentExecSDK.executeToolCall(...) here
+      },
+    });
+  }, [registerTool]);
+
+  return <div>Premium Market Analytics ($0.10 USDC / query)</div>;
+}
+```
+
+> **Note:** Settlement fields (`targetContract`, `abiMethod`, `priceUSD`) are passed to `agentExecSDK.executeToolCall` when executing. Browser registration focuses on name, description, JSON Schema `parameters`, and the local `handler`.
+
+## Step 3: Intercept & Execute Payment via Session Keys
+
+Use `agentExecSDK` to execute tool calls. The SDK handles HTTP **402 Payment Required** challenges, signs payloads via user-delegated session keys, runs **Tenderly** pre-flight simulations, and broadcasts UserOps via **Pimlico** on Base L2.
+
+```ts
+import { agentExecSDK } from "@agentexec/sdk";
+// Monorepo: import { agentExecSDK } from "../src/sdk/webmcp-adapter.js";
+
+async function executeAgentAction() {
+  const sessionPrivateKey = "0x..."; // Active session key with spend-cap policy
+
+  try {
+    const result = await agentExecSDK.executeToolCall(
+      {
+        name: "fetch_market_analytics",
+        description: "Access real-time on-chain analytics",
+        priceUSD: 0.1,
+        targetContract: "0x5D5a97110a7504dc04e2442B669B0FB408aE74B6",
+        abiMethod: "getAnalytics()",
+      },
+      { timeframe: "24h" },
+      sessionPrivateKey
+    );
+
+    console.log("Transaction Hash:", result.txHash);
+    console.log("Settled Amount:", result.settledAmountUSD);
+  } catch (error) {
+    console.error(
+      "Execution failed:",
+      error instanceof Error ? error.message : error
+    );
+  }
+}
+```
+
+### What happens under the hood
+
+1. SDK builds an x402 payment payload and signs it with the session key (viem / EIP-191).
+2. `POST /v1/intent` (alias `/api/v1/intent`) verifies the signature and enforces the **$10.00** per-intent spend cap.
+3. `simulateTransaction` dry-runs on Tenderly (mock pass when `TENDERLY_*` creds are absent).
+4. AgentExec submits a sponsored ERC-4337 UserOp (or mock settlement when `EXECUTION_MODE=mock`).
+
+## Local demo
 
 ```bash
-npm install @agentexec/sdk
+# API (repo root)
+EXECUTION_MODE=mock npm run dev
+
+# Website
+cd website && npm run dev -- -p 3002
+# open http://localhost:3002/demo
 ```
-
-## Quickstart
-
-### 1. Initialize the Adapter
-
-```typescript
-import { WebMCPAgentExecAdapter } from '../src/sdk/webmcp-agentexec-adapter.js';
-// Published: import { WebMCPAgentExecAdapter } from '@agentexec/sdk';
-
-const agentExec = new WebMCPAgentExecAdapter({
-  baseUrl: 'https://api.agentexec.io', // Or local gateway http://localhost:8080
-  apiKey: process.env.NEXT_PUBLIC_AGENT_API_KEY!,
-  sessionKey: userSessionKey,
-  fromAddress: '0xYourSafeSmartAccount',
-  maxSessionSpendUsdc: 50,
-});
-```
-
-### 2. Register a Payable WebMCP Tool
-
-Make any action on your website discoverable by visiting AI agents while delegating security, simulation, and gas sponsorship to AgentExec:
-
-```typescript
-agentExec.registerPayableWebMCPTool({
-  name: 'purchase_market_report',
-  description: 'Unlocks real-time liquidity analysis for Base L2 pools',
-  parameters: {
-    type: 'object',
-    properties: {
-      pair: { type: 'string' },
-    },
-    required: ['pair'],
-  },
-  targetContract: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', // Base USDC
-  usdcPrice: '0.10',
-  x402Path: '/v1/paid/market-pulse', // optional HTTP 402 gate
-});
-```
-
-### 3. How It Works Under the Hood
-
-1. **Discovery** — The AI agent reads the registered tool from `navigator.modelContext` (when available).
-2. **Intent & pre-flight** — The action triggers an intent dispatch to `POST /v1/intent/execute`.
-3. **Tenderly simulation** — AgentExec dry-runs the call to block reverts and balance drains.
-4. **Gasless settlement** — AgentExec submits an ERC-4337 UserOp sponsored by Pimlico paymasters on Base L2.
 
 ## Integration tests
 
@@ -72,6 +148,14 @@ npm test -- tests/integration/webmcp-agentexec.test.ts
 
 | Variable | Purpose |
 |----------|---------|
-| `AGENTEXEC_BASE_URL` | API or gateway base URL |
-| `AGENT_API_KEY` | `X-API-Key` header |
-| `TEST_SESSION_KEY` | Optional session key for tests |
+| `AGENTEXEC_BASE_URL` / `NEXT_PUBLIC_AGENTEXEC_URL` | Gateway base URL (default `http://localhost:8787`) |
+| `AGENT_API_KEY` / `NEXT_PUBLIC_AGENT_API_KEY` | `X-API-Key` header |
+| `WEBMCP_PER_INTENT_CAP_USD` | Per-intent spend cap (default `10`) |
+| `TENDERLY_ACCESS_KEY` / `TENDERLY_ACCOUNT_SLUG` / `TENDERLY_PROJECT_SLUG` | Live Tenderly pre-flight |
+| `EXECUTION_MODE` | `mock` \| `live` |
+
+## Related docs
+
+- [WEBMCP_ADAPTER.md](./WEBMCP_ADAPTER.md) — adapter & intent route details
+- [PITCH_DECK.md](./PITCH_DECK.md) — architecture overview
+- [KEEPER_VERIFICATION.md](./KEEPER_VERIFICATION.md) — paymaster top-up keeper

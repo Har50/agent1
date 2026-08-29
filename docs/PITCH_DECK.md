@@ -1,8 +1,78 @@
-# AgentExec: Executive Technical Summary
+# AgentExec + WebMCP
 
-## Executive Overview
+**The Complete Infrastructure Stack for Autonomous Agentic Commerce**
 
-AgentExec is the programmable execution and security rail for autonomous AI agents operating in the machine economy. Traditional financial rails rely on manual human verification (2FA, CAPTCHAs, credit cards), while raw crypto wallets expose agents to prompt-injection drains and unconstrained spending. AgentExec bridges browser-native frontends (WebMCP) and on-chain settlement (Base L2) through a secure, programmable middleware layer.
+---
+
+## The Problem
+
+**Fragile AI Web Interactions:** AI agents struggle with traditional websites—relying on slow, brittle DOM scraping and visual layout heuristics that break frequently.
+
+**On-Chain Settlement Friction:** Agents executing commercial micro-transactions face seed phrase risks, unpredictable gas fees, failing transactions, and strict wallet interaction hurdles.
+
+---
+
+## The Solution: WebMCP + AgentExec
+
+A two-layer architecture separating **Browser Discovery** from **L2 Execution & Safety**:
+
+| Layer | Role |
+|-------|------|
+| **Front-End Discovery (WebMCP)** | Extends `window.navigator.modelContext` so visiting AI agents get a clean, structured schema menu of on-page tools and micro-pricing. |
+| **Back-End Execution & Safety (AgentExec)** | Enforces per-intent spend caps, simulates execution via Tenderly, sponsors gas via Pimlico UserOps, and manages liquidity reserves on Base L2 with an automated Go keeper. |
+
+---
+
+## System Architecture Flow
+
+```text
+┌─────────────────────────────────────────────────────────┐
+│                   VISITING AI AGENT                     │
+└───────────────────────────┬─────────────────────────────┘
+                            │
+              1. Discover Tools & Pricing
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────┐
+│              WebMCP Browser Discovery Layer             │
+│        (window.navigator.modelContext Tool Registry)    │
+└───────────────────────────┬─────────────────────────────┘
+                            │
+              2. Tool Action Called → Trigger HTTP 402
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────┐
+│                   @agentexec/sdk                        │
+│        (Session Key Signing & Payment Interceptor)      │
+└───────────────────────────┬─────────────────────────────┘
+                            │
+              3. Signed Intent & Payment Payload
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────┐
+│                 AgentExec Fastify Gateway               │
+│  ├─ Policy Check (Max $10 Spend-Cap per Intent)         │
+│  ├─ Tenderly Pre-flight Simulation (Zero Reverts)       │
+│  └─ Pimlico Account Abstraction (Gasless UserOps)       │
+└───────────────────────────┬─────────────────────────────┘
+                            │
+              4. Settlement on Base L2
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────┐
+│                    Base L2 Mainnet                      │
+│   (PaymasterAutoTopUp.sol maintained by Go Keeper)      │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Key Product Highlights
+
+- **Zero DOM Scraping** — Direct schema communication between web apps and AI models.
+- **Non-Custodial Safety** — Users delegate short-lived session keys with strict spending caps.
+- **Pre-Flight Zero-Revert Guarantee** — Transactions are simulated on Tenderly before broadcast; failed states cost zero gas.
+- **Automated Liquidity** — The Go keeper daemon continuously monitors and refills paymaster gas reserves.
 
 ---
 
@@ -17,35 +87,18 @@ AgentExec is the programmable execution and security rail for autonomous AI agen
 
 ---
 
-## Technical Architecture
-
-```text
-[ AI Agent / Browser ] ──(WebMCP / x402)──> [ Go Gateway (Redis Rate Limit) ]
-                                              │
-                                              ▼
-                                    [ TS Execution Engine ]
-                                    ├─ EIP-7579 Session Keys
-                                    ├─ Tenderly Simulation
-                                    └─ Pimlico ERC-4337 Paymaster
-                                              │
-                                              ▼
-                                    [ Base L2 Settlement ]
-```
-
----
-
 ## Business & Monetization Model
 
-1. **Developer SaaS Subscriptions:** Tiered API plans for enterprise agent developers requiring custom rate limits and compliance telemetry.
-2. **Per-Execution Protocol Fee:** ~$0.005 micro-fee collected per validated UserOp execution.
-3. **x402 Paywall Volume Fee:** 1.5% processing fee on machine-to-machine micropayment volume routed through the gateway.
+1. **Developer SaaS Subscriptions** — Tiered API plans for enterprise agent developers requiring custom rate limits and compliance telemetry.
+2. **Per-Execution Protocol Fee** — ~$0.005 micro-fee collected per validated UserOp execution.
+3. **x402 Paywall Volume Fee** — 1.5% processing fee on machine-to-machine micropayment volume routed through the gateway.
 
 ---
 
 ## Go-To-Market & Distribution Strategy
 
-- **Developer Tools Ecosystem:** Open-source MCP toolkits distributed directly to Claude Desktop, Cursor, and LangChain environments.
-- **Agent-Ready Web Conversion:** Turnkey SDK (`WebMCPAgentExecAdapter`) allowing web applications to expose WebMCP-compliant endpoints backed by AgentExec settlement.
+- **Developer Tools Ecosystem** — Open-source MCP toolkits for Claude Desktop, Cursor, and LangChain environments.
+- **Agent-Ready Web Conversion** — Turnkey SDK (`@agentexec/sdk` + `WebMCPProvider`) so web apps expose WebMCP-compliant tools backed by AgentExec settlement.
 
 ---
 
@@ -58,6 +111,16 @@ AgentExec is the programmable execution and security rail for autonomous AI agen
 | MCP server | ✅ Shipped |
 | Go Redis gateway | ✅ Shipped |
 | `PaymasterAutoTopUp` + Foundry/Slither | ✅ Shipped (PR #2) |
-| WebMCP SDK + integration tests | ✅ This release |
-| Go paymaster keeper daemon | ✅ This release |
+| WebMCP SDK + `/v1/intent` + Tenderly helper | ✅ This release |
+| Go paymaster keeper daemon | ✅ Shipped |
+| Integration CI (contracts + Vitest + Go) | ✅ This release |
 | Third-party audit / SOC 2 | ⏳ Pre-audit tooling only |
+
+---
+
+## Related docs
+
+- [SDK_QUICKSTART.md](./SDK_QUICKSTART.md) — developer integration guide
+- [WEBMCP_ADAPTER.md](./WEBMCP_ADAPTER.md) — adapter & intent route
+- [KEEPER_VERIFICATION.md](./KEEPER_VERIFICATION.md) — vault / USDC top-up
+- [MAINNET_CHECKLIST.md](./MAINNET_CHECKLIST.md) — production cutover
