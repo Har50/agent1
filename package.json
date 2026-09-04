@@ -18,6 +18,7 @@
     "sponsored:example": "tsx scripts/executeSponsoredTx.ts",
     "sepolia:check": "tsx scripts/sepoliaCheck.ts",
     "session-key:demo": "tsx scripts/issueSessionKeyDemo.ts",
+    "test:intent": "tsx scripts/test-intent.ts",
     "prod:up": "docker compose -f docker-compose.prod.yml up -d --build",
     "prod:down": "docker compose -f docker-compose.prod.yml down",
     "test": "vitest run",
