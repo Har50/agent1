@@ -107,7 +107,9 @@ curl_json -X POST "$GATEWAY_URL" "${HDRS[@]}" -d "$INTENT_PAYLOAD"
 echo "HTTP Response Status: $HTTP_CODE"
 print_body
 
-if [ "$HTTP_CODE" = "401" ]; then
+if [ -z "$API_KEY" ] && [ "$HTTP_CODE" = "401" ]; then
+  echo -e "${YELLOW}○ HTTP 401 — set AGENT_API_KEY (must match Render API_KEYS) then re-run.${NC}"
+elif [ "$HTTP_CODE" = "401" ]; then
   echo -e "${GREEN}✓ Gateway rejected invalid session signature (expected for mock sig).${NC}"
 elif [ "$HTTP_CODE" = "402" ]; then
   echo -e "${YELLOW}○ Still 402 — check payment header names.${NC}"
