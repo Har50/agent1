@@ -109,10 +109,27 @@ docker compose -f docker-compose.monitoring.yml up -d
 
 ## 3. Endpoint health verification
 
-After Render deploy (and custom domains wired):
+After Render deploy (and custom domains wired), run the full post-deploy suite:
 
 ```bash
-chmod +x scripts/verify-production-endpoints.sh
+chmod +x scripts/verify-deployment.sh
+
+# SSL + discovery manifests + /health + x402 intent probe
+./scripts/verify-deployment.sh yourdomain.com api.yourdomain.com
+
+# To assert HTTP 402 (payment required) instead of 401 on /api/v1/intent:
+AGENT_API_KEY=your-key ./scripts/verify-deployment.sh yourdomain.com api.yourdomain.com
+```
+
+Checks performed:
+
+1. **SSL** — certificate present and ≥7 days until expiry (site + API hosts)  
+2. **Discovery** — `AGENTS.md`, `.well-known/mcp.json`, `.well-known/agent-card.json`  
+3. **Gateway** — `GET /health` → 200 JSON; `POST /api/v1/intent` → 402 (with API key) or 401 (without)
+
+Lighter alternative (HTTP only, no SSL):
+
+```bash
 ./scripts/verify-production-endpoints.sh https://yourdomain.com https://api.yourdomain.com
 ```
 
@@ -125,7 +142,7 @@ curl -I https://yourdomain.com/AGENTS.md
 curl https://api.yourdomain.com/health
 ```
 
-Expect **HTTP 200** on all four.
+Expect **HTTP 200** on discovery + health.
 
 ---
 
