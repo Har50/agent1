@@ -1,0 +1,42 @@
+{
+  "name": "AgentExec Execution Node",
+  "description": "Automated Base L2 gasless execution engine and x402 payment gateway for autonomous agents.",
+  "version": "1.0.0",
+  "documentationUrl": "https://yourdomain.com/docs/MAINNET_CHECKLIST.md",
+  "provider": {
+    "organization": "AgentExec",
+    "url": "https://yourdomain.com"
+  },
+  "supportedInterfaces": [
+    {
+      "url": "https://api.yourdomain.com/api/v1/intent",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "capabilities": {
+    "streaming": false,
+    "pushNotifications": false,
+    "extendedAgentCard": false
+  },
+  "skills": [
+    {
+      "id": "execute-intent",
+      "name": "Execute Gasless Intent",
+      "description": "Executes an L2 transaction via session keys and paymaster top-ups.",
+      "tags": ["web3", "base", "paymaster", "execution"],
+      "examples": [
+        "Execute intent on Base mainnet with x402 payment authorization"
+      ]
+    },
+    {
+      "id": "health-check",
+      "name": "Gateway Health Status",
+      "description": "Checks connectivity and balance state for keeper and paymaster services.",
+      "tags": ["monitoring", "health"],
+      "examples": [
+        "Check Fastify gateway and Go keeper health status"
+      ]
+    }
+  ]
+}

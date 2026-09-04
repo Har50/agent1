@@ -1,0 +1,16 @@
+{
+  "name": "AgentExec Commerce & MCP Gateway",
+  "description": "Exposes WebMCP tool calls and x402 payment execution endpoints on Base L2",
+  "version": "1.0.0",
+  "mcpVersion": "2024-11-05",
+  "endpoints": {
+    "gateway": "https://api.yourdomain.com/api/v1/intent",
+    "health": "https://api.yourdomain.com/health"
+  },
+  "payment": {
+    "protocol": "x402",
+    "network": "base-mainnet",
+    "chainId": 8453,
+    "paymasterContract": "PAYMASTER_TOPUP_CONTRACT"
+  }
+}

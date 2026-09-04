@@ -1,0 +1,27 @@
+groups:
+  - name: agentexec_keeper
+    rules:
+      - alert: KeeperTargetDown
+        expr: up{job="paymaster_keeper"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Paymaster keeper metrics unreachable"
+          description: "Prometheus cannot scrape paymaster_keeper for >2m. Check the Render worker / local keeper process."
+
+      - alert: KeeperMetricsStale
+        expr: time() - timestamp(up{job="paymaster_keeper"}) > 120
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Keeper scrape data may be stale"
+          description: "No fresh samples from paymaster_keeper in 5 minutes."
+
+  # Placeholder until the keeper exports vault/paymaster gauges:
+  # - alert: PaymasterReserveLow
+  #   expr: agentexec_paymaster_balance_usdc < agentexec_topup_threshold_usdc
+  #   for: 5m
+  #   labels:
+  #     severity: critical

@@ -1,0 +1,6 @@
+{
+  "$schema": "https://glama.ai/mcp/schema.json",
+  "name": "agentexec-mcp",
+  "description": "Base Mainnet gasless L2 execution and paid WebMCP tool gateway",
+  "tags": ["web3", "x402", "base-l2", "mcp"]
+}
