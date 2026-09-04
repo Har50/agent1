@@ -13,7 +13,8 @@ Root [`render.yaml`](../render.yaml) deploys:
 1. Push this branch to GitHub.
 2. Render → **New** → **Blueprint** → select `Har50/agent1`.
 3. Set all `sync: false` secrets (RPC, keys, Tenderly, Pimlico, DB, Redis).
-4. For mainnet cutover follow [MAINNET_CHECKLIST.md](./MAINNET_CHECKLIST.md).
+4. Replace domain placeholders and verify endpoints — [PRODUCTION_DEPLOYMENT.md](./PRODUCTION_DEPLOYMENT.md).
+5. For mainnet cutover follow [MAINNET_CHECKLIST.md](./MAINNET_CHECKLIST.md).
 
 ## Local monitoring stack
 
