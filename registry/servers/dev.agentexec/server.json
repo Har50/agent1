@@ -1,0 +1,25 @@
+﻿{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "dev.agentexec/gateway",
+  "title": "AgentExec WebMCP & Base L2 Gateway",
+  "description": "Browser-native tool discovery and gasless Base Mainnet settlement via session keys and x402 payment rails.",
+  "version": "1.0.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Har50/agent1"
+  },
+  "websiteUrl": "https://agentexec.dev",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@agentexec/sdk",
+      "version": "1.0.0"
+    }
+  ],
+  "remotes": [
+    {
+      "type": "http",
+      "url": "https://agentexec.dev/.well-known/mcp.json"
+    }
+  ]
+}

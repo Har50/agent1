@@ -1,27 +1,58 @@
-groups:
-  - name: agentexec_keeper
+﻿groups:
+  - name: agentexec_onchain_alerts
     rules:
-      - alert: KeeperTargetDown
-        expr: up{job="paymaster_keeper"} == 0
-        for: 2m
+      - alert: KeeperEthBalanceLow
+        expr: agentexec_keeper_eth_balance < 0.01
+        for: 5m
         labels:
           severity: critical
         annotations:
-          summary: "Paymaster keeper metrics unreachable"
-          description: "Prometheus cannot scrape paymaster_keeper for >2m. Check the Render worker / local keeper process."
+          summary: "Go Keeper ETH gas balance is critically low"
+          description: "Keeper wallet {{ $labels.address }} balance is {{ $value }} ETH (threshold: 0.01 ETH). Auto top-ups will fail soon."
 
-      - alert: KeeperMetricsStale
-        expr: time() - timestamp(up{job="paymaster_keeper"}) > 120
+      - alert: PaymasterUsdcReserveLow
+        expr: agentexec_paymaster_usdc_balance < 10.0
         for: 5m
         labels:
           severity: warning
         annotations:
-          summary: "Keeper scrape data may be stale"
-          description: "No fresh samples from paymaster_keeper in 5 minutes."
+          summary: "Paymaster USDC reserve is low"
+          description: "Paymaster contract {{ $labels.address }} reserve dropped to ${{ $value }} USDC (threshold: $10.00 USDC)."
 
-  # Placeholder until the keeper exports vault/paymaster gauges:
-  # - alert: PaymasterReserveLow
-  #   expr: agentexec_paymaster_balance_usdc < agentexec_topup_threshold_usdc
-  #   for: 5m
-  #   labels:
-  #     severity: critical
+      - alert: PaymasterUsdcReserveDepleted
+        expr: agentexec_paymaster_usdc_balance < 2.0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Paymaster USDC reserve nearly depleted"
+          description: "Paymaster contract {{ $labels.address }} reserve dropped to ${{ $value }} USDC. UserOp gas sponsorship will halt."
+
+  - name: agentexec_gateway_alerts
+    rules:
+      - alert: GatewayHighErrorRate
+        expr: (sum(rate(http_requests_total{status=~"5.."}[5m])) / sum(rate(http_requests_total[5m]))) * 100 > 5
+        for: 3m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Gateway HTTP 5xx error rate above 5%"
+          description: "Fastify Gateway error rate is currently at {{ $value }}% over the last 5 minutes."
+
+      - alert: GatewayDown
+        expr: up{job="fastify-gateway"} == 0
+        for: 1m
+        labels:
+          severity: page
+        annotations:
+          summary: "Fastify Gateway instance down"
+          description: "Gateway target {{ $labels.instance }} is unresponsive."
+
+      - alert: KeeperTargetDown
+        expr: up{job="go-keeper"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Go keeper metrics unreachable"
+          description: "Prometheus cannot scrape go-keeper for >2m. Check the Render worker / local keeper process."
