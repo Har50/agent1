@@ -6,7 +6,15 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "noEmit": false
+    "noEmit": false,
+    "lib": ["ES2022", "DOM"],
+    "types": ["node"],
+    "baseUrl": ".",
+    "paths": {
+      "viem": ["./node_modules/viem"],
+      "viem/*": ["./node_modules/viem/*"]
+    },
+    "skipLibCheck": true
   },
   "include": ["../../src/sdk/**/*.ts"],
   "exclude": ["node_modules", "dist"]
