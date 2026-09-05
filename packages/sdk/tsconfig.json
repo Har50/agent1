@@ -11,8 +11,8 @@
     "types": ["node"],
     "baseUrl": ".",
     "paths": {
-      "viem": ["./node_modules/viem"],
-      "viem/*": ["./node_modules/viem/*"]
+      "viem": ["../../node_modules/viem", "./node_modules/viem"],
+      "viem/*": ["../../node_modules/viem/*", "./node_modules/viem/*"]
     },
     "skipLibCheck": true
   },

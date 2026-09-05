@@ -5,9 +5,6 @@ on:
 jobs:
   test-and-publish:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: packages/sdk
     permissions:
       contents: read
       id-token: write
@@ -18,20 +15,31 @@ jobs:
           node-version: "22"
           registry-url: https://registry.npmjs.org
           cache: npm
-          cache-dependency-path: packages/sdk/package-lock.json
-      - run: npm ci
-      - run: npm run typecheck
-      - run: npm run build
+          cache-dependency-path: |
+            package-lock.json
+            packages/sdk/package-lock.json
+      - name: Install monorepo dependencies
+        run: npm ci
+      - name: Install SDK package dependencies
+        working-directory: packages/sdk
+        run: npm ci
+      - name: Typecheck SDK
+        working-directory: packages/sdk
+        run: npm run typecheck
+      - name: Build SDK
+        working-directory: packages/sdk
+        run: npm run build
       - name: Monorepo tests
-        working-directory: .
         run: |
-          npm ci
           npm run typecheck --if-present
           npm test
-      - name: Version from tag
+      - name: Sync version from git tag
+        working-directory: packages/sdk
         run: |
           TAG="${GITHUB_REF_NAME#v}"
           npm version "$TAG" --no-git-tag-version --allow-same-version
-      - run: npm publish --access public --provenance
+      - name: Publish to npm
+        working-directory: packages/sdk
+        run: npm publish --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
